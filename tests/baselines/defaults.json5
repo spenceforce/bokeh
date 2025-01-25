@@ -5301,6 +5301,7 @@
   },
   Plot: {
     __extends__: "LayoutDOM",
+    context_menu: "auto",
     width: 600,
     height: 600,
     x_range: {
