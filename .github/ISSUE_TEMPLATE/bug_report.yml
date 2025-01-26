@@ -1,7 +1,8 @@
 name: Bug report
 description: Create a report to help us improve
-title: "[BUG] "
-labels: TRIAGE
+title: ""
+labels: ["type: bug", "TRIAGE"]
+type: "Bug"
 body:
   - type: markdown
     attributes:
