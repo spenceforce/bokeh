@@ -16,6 +16,7 @@ export namespace ToolProxy {
 
   export type Props<T extends Tool> = Model.Props & {
     tools: p.Property<T[]>
+    visible: p.Property<boolean>
     active: p.Property<boolean>
     disabled: p.Property<boolean>
   }
@@ -34,6 +35,7 @@ export class ToolProxy<T extends Tool> extends Model {
   static {
     this.define<ToolProxy.Props<Tool>>(({Bool, List, Ref}) => ({
       tools:    [ List(Ref(Tool)), [] ],
+      visible:  [ Bool, (self) => some((self as ToolProxy<Tool>).tools, (tool) => tool.visible) ],
       active:   [ Bool, (self) => some((self as ToolProxy<Tool>).tools, (tool) => tool.active) ],
       disabled: [ Bool, false ],
     }))
@@ -84,11 +86,6 @@ export class ToolProxy<T extends Tool> extends Model {
   get toggleable(): boolean {
     const tool = this.tools[0] as Tool
     return "toggleable" in tool && (tool as InspectTool).toggleable
-  }
-
-  get visible(): boolean {
-    const tool = this.tools[0] as Tool
-    return tool.visible
   }
 
   override initialize(): void {

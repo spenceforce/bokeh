@@ -100,15 +100,21 @@ export class ToolbarView extends UIElementView {
     const {buttons, tools, location, autohide} = this.model.properties
     this.on_change([buttons, tools], async () => {
       await this._build_tool_button_views()
-      this.render()
+      this.rerender()
     })
 
     this.on_change(location, () => {
-      this.render()
+      this.rerender()
     })
 
     this.on_change(autohide, () => {
       this._on_visible_change()
+    })
+
+    this.on_transitive_change(tools, () => {
+      this.rerender()
+    }, {
+      signal: (obj) => obj.properties.visible.change,
     })
   }
 
@@ -132,9 +138,7 @@ export class ToolbarView extends UIElementView {
           this.model.auxiliaries,
         ]
         const buttons = groups.map((group) => {
-          return group
-            .filter((tool) => tool.visible)
-            .map((tool) => tool.tool_button())
+          return group.map((tool) => tool.tool_button())
         })
         return buttons
       } else {
@@ -203,17 +207,27 @@ export class ToolbarView extends UIElementView {
     }
 
     for (const [, button_view] of this._tool_button_views) {
-      button_view.render_to(this.shadow_el)
+      button_view.render()
     }
 
-    const bars = this._tool_buttons.map((group) => group.map((button) => this._tool_button_views.get(button)!.el))
-    const non_empty = bars.filter((bar) => bar.length != 0)
+    const bars = this._tool_buttons.map((group) => {
+      return group
+        .filter((button) => button.tool.visible)
+        .map((button) => this._tool_button_views.get(button))
+        .filter((view) => view != null)
+        .map((view) => view.el)
+    }).filter((bar) => bar.length != 0)
 
     const divider = () => div({class: toolbars.divider})
 
-    for (const el of join<HTMLElement>(non_empty, divider)) {
+    for (const el of join<HTMLElement>(bars, divider)) {
       this._items.push(el)
-      this.shadow_el.append(el)
+    }
+
+    this.shadow_el.append(...this._items)
+
+    for (const [, button_view] of this._tool_button_views) {
+      button_view.after_render()
     }
   }
 
@@ -396,7 +410,7 @@ export class Toolbar extends UIElement {
 
   override initialize(): void {
     super.initialize()
-    this.active_changed  = new Signal0(this, "active_changed")
+    this.active_changed = new Signal0(this, "active_changed")
     this._init_tools()
     this._activate_tools()
   }

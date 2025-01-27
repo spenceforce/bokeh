@@ -88,15 +88,16 @@ export abstract class ToolButtonView extends UIElementView {
   override render(): void {
     super.render()
 
+    const {tool} = this.model
     this.class_list.add(tool_button[this.parent.model.location])
-    if (this.model.tool.disabled) {
-      this.class_list.add(tool_button.disabled)
-    }
+
+    this.class_list.toggle(tool_button.hidden, !tool.visible)
+    this.class_list.toggle(tool_button.disabled, tool.disabled)
 
     const icon_el = div({class: tool_button.tool_icon})
-    this.shadow_el.appendChild(icon_el)
+    this.shadow_el.append(icon_el)
 
-    const icon = this.model.icon ?? this.model.tool.computed_icon
+    const icon = this.model.icon ?? tool.computed_icon
     if (icon != null) {
       if (icon.startsWith("data:image")) {
         const url = `url("${encodeURI(icon)}")`
@@ -112,12 +113,12 @@ export abstract class ToolButtonView extends UIElementView {
       }
     }
 
-    if (this.model.tool.menu != null) {
+    if (tool.menu != null) {
       const chevron_el = div({class: tool_button.tool_chevron})
-      this.shadow_el.appendChild(chevron_el)
+      this.shadow_el.append(chevron_el)
     }
 
-    const tooltip = this.model.tooltip ?? this.model.tool.tooltip
+    const tooltip = this.model.tooltip ?? tool.tooltip
     this.el.title = tooltip
 
     this.el.tabIndex = 0
